@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "\nlibrary(missForest)\n\n#load data\ndata <- iris\n\n#Get summary\nsummary(iris)\ncolnames(iris)\n\n#Generate 10% missing values at Random \niris.mis <- prodNA(iris, noNA = 0.1)\n\n#Check missing values introduced in the data\nsummary(iris.mis)\n\n#remove categorical variables\niris.mis <- subset(iris.mis, select = -c(Species))\nsummary(iris.mis)\n\n#mice package has a function known as md.pattern().  \n#It returns a tabular form of missing value present in \n#each variable in a data set.\nmd.pattern(iris.mis)\n\nmice_plot <- aggr(iris.mis, col=c('navyblue','yellow'),\n                  numbers=TRUE, sortVars=TRUE,\n                  labels=names(iris.mis), cex.axis=.7,\n                  gap=3, ylab=c(\"Missing data\",\"Pattern\"))\n\nimputed_Data <- mice(iris.mis, m=5, maxit = 50, \n                       method = 'pmm', seed = 500)\nsummary(imputed_Data)\n",
+    "created" : 1458393597168.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "2848787719",
+    "id" : "FF228E64",
+    "lastKnownWriteTime" : 1458395065,
+    "last_content_update" : 1458395065054,
+    "path" : "D:/GIT_REPOS/AnalyticsVidhya/LoanPrediction2/scratchpad.R",
+    "project_path" : "scratchpad.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

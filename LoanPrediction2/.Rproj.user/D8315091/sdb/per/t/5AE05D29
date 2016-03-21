@@ -1,0 +1,21 @@
+{
+    "collab_server" : "",
+    "contents" : "#https://github.com/joyofdata/joyofdata-articles/tree/master/roc-auc\n\n\ndata(Titanic)\ndim(Titanic)\n\n\n# read_and_prepare_titanic_dataset <- function(f)\n# {\n#   df <- read.table(f, header = TRUE, sep=\",\", stringsAsFactors = FALSE)\n#   \n#   df$pclass <- as.factor(df$pclass)\n#   df$survived <- as.factor(df$survived)\n#   df$sex <- as.factor(df$sex)\n#   \n#   df <- df[,c(\"survived\",\"pclass\",\"sex\",\"age\",\"sibsp\",\"parch\")]\n#   df <- df[complete.cases(df),]\n#   \n#   return(df)\n# }\n\n\nplot_roc <- function(roc, threshold, cost_of_fp, cost_of_fn) {\n  library(gridExtra)\n  library(ggplot2)\n  norm_vec <- function(v) (v - min(v))/diff(range(v))\n  \n  idx_threshold = which.min(abs(roc$threshold-threshold))\n  \n  col_ramp <- colorRampPalette(c(\"green\",\"orange\",\"red\",\"black\"))(100)\n  col_by_cost <- col_ramp[ceiling(norm_vec(roc$cost)*99)+1]\n  p_roc <- ggplot(roc, aes(fpr,tpr)) + \n    geom_line(color=rgb(0,0,1,alpha=0.3)) +\n    geom_point(color=col_by_cost, size=4, alpha=0.5) +\n    coord_fixed() +\n    geom_line(aes(threshold,threshold), color=rgb(0,0,1,alpha=0.5)) +\n    labs(title = sprintf(\"ROC\")) + xlab(\"FPR\") + ylab(\"TPR\") +\n    geom_hline(yintercept=roc[idx_threshold,\"tpr\"], alpha=0.5, linetype=\"dashed\") +\n    geom_vline(xintercept=roc[idx_threshold,\"fpr\"], alpha=0.5, linetype=\"dashed\")\n  \n  p_cost <- ggplot(roc, aes(threshold, cost)) +\n    geom_line(color=rgb(0,0,1,alpha=0.3)) +\n    geom_point(color=col_by_cost, size=4, alpha=0.5) +\n    labs(title = sprintf(\"cost function\")) +\n    geom_vline(xintercept=threshold, alpha=0.5, linetype=\"dashed\")\n  \n  sub_title <- sprintf(\"threshold at %.2f - cost of FP = %d, cost of FN = %d\", threshold, cost_of_fp, cost_of_fn)\n  \n  grid.arrange(p_roc, p_cost, ncol=2, sub=textGrob(sub_title, gp=gpar(cex=1), just=\"bottom\"))\n}\n\n\ncalculate_roc <- function(df, cost_of_fp, cost_of_fn, n=100) {\n  tpr <- function(df, threshold) {\n    sum(df$pred >= threshold & df$survived == 1) / sum(df$survived == 1)\n  }\n  \n  fpr <- function(df, threshold) {\n    sum(df$pred >= threshold & df$survived == 0) / sum(df$survived == 0)\n  }\n  \n  cost <- function(df, threshold, cost_of_fp, cost_of_fn) {\n    sum(df$pred >= threshold & df$survived == 0) * cost_of_fp + \n      sum(df$pred < threshold & df$survived == 1) * cost_of_fn\n  }\n  \n  roc <- data.frame(threshold = seq(0,1,length.out=n), tpr=NA, fpr=NA)\n  roc$tpr <- sapply(roc$threshold, function(th) tpr(df, th))\n  roc$fpr <- sapply(roc$threshold, function(th) fpr(df, th))\n  roc$cost <- sapply(roc$threshold, function(th) cost(df, th, cost_of_fp, cost_of_fn))\n  \n  return(roc)\n}\nlog_reg <- function(df, size=10) {\n  N <- nrow(df)\n  size=10\n  \n  df <- df[sample(N),]\n  \n  num <- floor(N/size)\n  rest <- N - num * size\n  ncv <- cumsum(c(rep(size,num), rest))\n  \n  predictions <- data.frame(survived = df$survived, pred = NA)\n  \n  for(n in ncv) {\n    v <- rep(TRUE, N)\n    v[(n-size+1):n] <- FALSE\n    \n    lr <- glm(survived ~ ., data = df[v,], family = binomial(logit))\n    predictions[!v,\"pred\"] <- predict(lr, newdata=df[!v,], type=\"response\")\n  }\n  \n  return(predictions)\n}",
+    "created" : 1458407095111.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "636414995",
+    "id" : "5AE05D29",
+    "lastKnownWriteTime" : 1458408753,
+    "last_content_update" : 1458408753064,
+    "path" : "D:/GIT_REPOS/AnalyticsVidhya/LoanPrediction2/ROC_illustrated.R",
+    "project_path" : "ROC_illustrated.R",
+    "properties" : {
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
